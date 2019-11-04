@@ -1,0 +1,10 @@
+name: wod_prof_db-env
+
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+- python>=3.5
+- numpy
+- scipy
