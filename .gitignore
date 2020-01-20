@@ -40,4 +40,4 @@ doc/_build/
 
 # Everything on the data dir
 /data/
-
+/analyses/
