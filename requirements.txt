@@ -1,3 +1,6 @@
 pip
 Sphinx
 pytest
+numpy
+scipy
+gsw==3.3.0+10.g2d32f44
