@@ -4,7 +4,16 @@
 """The setup script."""
 
 from setuptools import setup, find_packages
+from os import path 
+import re, io
 
+
+__version__ = re.search(
+    r'__version__\s*=\s*[\'"]([^\'"]*)[\'"]',  # It excludes inline comment too
+    io.open('wod_prof_db/__init__.py', encoding='utf_8_sig').read()
+    ).group(1)
+
+here = path.abspath(path.dirname(__file__))
 
 with open('README.rst') as readme_file:
     readme = readme_file.read()
@@ -13,8 +22,11 @@ with open('README.rst') as readme_file:
 with open(path.join(here, 'requirements.txt'), encoding='utf-8') as f:
     all_reqs = f.read().split('\n')
 
-install_requires = [x.strip() for x in all_reqs if 'git+' not in x]
-dependency_links = [x.strip().replace('git+', '') for x in all_reqs if x.startswith('git+')]
+# install_requires = [x.strip() for x in all_reqs if 'git+' not in x]
+install_requires = [x.strip() for x in all_reqs]
+# dependency_links = [x.strip().replace('git+', '') for x in all_reqs if x.startswith('git+')]
+dependency_links = []
+# install_requires.extend([x.strip().replace('git+', '') for x in all_reqs if x.startswith('git+')])
 
 tests_requirements = ['pytest'],
 setup_requirements = ['pytest-runner']
@@ -38,7 +50,7 @@ setup(
     dependency_links=dependency_links,
     setup_requires=setup_requirements,
     test_suite='tests',
-    tests_require=test_requirements,
+    tests_require=tests_requirements,
     keywords='wod_prof_db',
     classifiers=[
         'Programming Language :: Python :: 3.6',
