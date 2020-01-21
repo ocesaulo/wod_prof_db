@@ -78,6 +78,15 @@ def z_pinterp(var, pres, std_z):
         if any(pres[1:] < pres[:-1]):
             sidx = np.argsort(pres)
             pres, var = pres[sidx], var[sidx]
+        if np.ma.isMaskedArray(pres):
+            if len(pres.compressed()) == len(pres):
+                pres = pres.compressed()
+            else:
+                # make sure pres mask and var mask are same
+                newmask = np.logical_or(pres.mask, var.mask)
+                pres.mask = newmask
+                var.mask = newmask
+                pres = pres.filled()
         fp = pchip(pres[~var.mask], var.compressed(), extrapolate=False)
         return fp(std_z)
 
