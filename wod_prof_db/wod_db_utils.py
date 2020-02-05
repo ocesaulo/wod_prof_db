@@ -211,7 +211,8 @@ def search_assemble_radavg(wod_dbase, lon_arr, lat_arr, std_z=None,
     #                   (len(avg_vars_grd), len(std_z), vars_grd.shape[-1]))
 
 
-def search_assemble_mld_radavg(wod_dbase, lon_arr, lat_arr, kmrad=1e2):
+def search_assemble_mld_radavg(wod_dbase, lon_arr, lat_arr,
+                               kmrad=1e2, crit=0.0528e0):
     avg_mlds = []
     std_mlds = []
     min_mlds = []
@@ -225,7 +226,7 @@ def search_assemble_mld_radavg(wod_dbase, lon_arr, lat_arr, kmrad=1e2):
         print("found %s good profiles in area" %len(wod_loc_subset))
         if len(wod_loc_subset) > 0:
             vars_arr = derive_variables(wod_loc_subset, which_ones='all')
-            mlds = [calc_mld(SA, CT, P, crit=0.0528) for SA, CT, P in zip(vars_arr[0], vars_arr[1], wod_loc_subset['pres'])]
+            mlds = [calc_mld(SA, CT, P, crit=crit) for SA, CT, P in zip(vars_arr[0], vars_arr[1], wod_loc_subset['pres'])]
             avg_mlds.append(np.nanmedian(mlds))
             std_mlds.append(np.nanstd(mlds))
             min_mlds.append(np.nanquantile(mlds, .05))
