@@ -134,9 +134,24 @@ def derive_variables(dbase, which_ones='all'):
                            dbase['lat'][n], alphabeta=True,
                            ) for n in range(0, len(dbase))]
     if which_ones == 'all':
-        return tuple(SA_dat, CT_dat, N2_dat, Sig_dat, Rho_dat, Theta_dat)
+        return SA_dat, CT_dat, N2_dat
     elif which_ones == 'N2':
         return N2_dat
+
+
+def find_nearest(array, value):
+    array = np.asarray(array)
+    idx = (np.abs(array - value)).argmin()
+    return array[idx], idx
+
+
+def calc_mld(SA, CT, P, crit=.125, sd=5.):
+    psi = find_nearest(P, sd)[1]
+    rho = gsw.sigma0(SA, CT)
+    rho_surf = rho[:psi+1].mean()
+    idx = np.where(rho >= rho_surf + crit)[0][0]
+    mld = P[idx]
+    return mld
 
 
 def wrap_regrid_2_std_z(vars_arr, p_arr, std_z, which_ones):
@@ -194,6 +209,29 @@ def search_assemble_radavg(wod_dbase, lon_arr, lat_arr, std_z=None,
     return np.asarray(avg_vars_grd), np.asarray(std_vars_grd), np.asarray(min_vars_grd), np.asarray(max_vars_grd)
     # return np.reshape(np.concatenate(avg_vars_grd),
     #                   (len(avg_vars_grd), len(std_z), vars_grd.shape[-1]))
+
+
+def search_assemble_mld_radavg(wod_dbase, lon_arr, lat_arr, kmrad=1e2):
+    avg_mlds = []
+    std_mlds = []
+    min_mlds = []
+    max_mlds = []
+    for n, (lonc, latc) in enumerate(zip(lon_arr, lat_arr)):
+        print(n, lonc, latc)
+        locs = lonlat_inside_km_radius(wod_dbase['lon'], wod_dbase['lat'],
+                                       (lonc, latc), kmrad)
+        wod_loc_subset = wod_dbase[locs]
+        wod_loc_subset = quik_quality_control(wod_loc_subset)
+        print("found %s good profiles in area" %len(wod_loc_subset))
+        if len(wod_loc_subset) > 0:
+            vars_arr = derive_variables(wod_loc_subset, which_ones='all')
+            mlds = [calc_mld(SA, CT, P, crit=0.0528) for SA, CT, P in zip(vars_arr[0], vars_arr[1], wod_loc_subset['pres'])]
+            avg_mlds.append(np.nanmedian(mlds))
+            std_mlds.append(np.nanstd(mlds))
+            min_mlds.append(np.nanquantile(mlds, .05))
+            max_mlds.append(np.nanquantile(mlds, .95))
+
+    return np.asarray(avg_mlds), np.asarray(std_mlds), np.asarray(min_mlds), np.asarray(max_mlds)
 
 
 def main():
